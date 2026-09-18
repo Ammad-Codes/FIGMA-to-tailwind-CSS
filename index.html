@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexcent — Manage your entire community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+        keyframes: {
+          fadeUp: { '0%': { opacity: 0, transform: 'translateY(28px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+          fadeIn:  { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+          pop:     { '0%': { opacity: 0, transform: 'scale(.92)' }, '100%': { opacity: 1, transform: 'scale(1)' } },
+        },
+        animation: {
+          fadeUp: 'fadeUp .8s cubic-bezier(.16,1,.3,1) forwards',
+          fadeIn: 'fadeIn 1s ease-out forwards',
+          pop:    'pop .7s cubic-bezier(.16,1,.3,1) forwards',
+        }
+      }
+    }
+  }
+</script>
+<style>
+  :root{
+    --bg:#ffffff;
+    --bg-alt:#f5f6f8;
+    --bg-hero:#eceeee;
+    --text:#1f2a37;
+    --text-secondary:#66707e;
+    --text-muted:#98a2b3;
+    --primary:#4caf50;
+    --primary-dark:#388e3c;
+    --primary-light:#e7f5e8;
+    --border:#e6e8eb;
+    --card-bg:#ffffff;
+    --footer-bg:#12181f;
+    --footer-text:#aeb4bd;
+    --footer-border:#262c34;
+    --logo-dark:#1b5e20;
+    --logo-light:#7cc47f;
+    --shadow: 0 20px 40px -18px rgba(20,30,25,0.18);
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg:#0f1115; --bg-alt:#161a20; --bg-hero:#161a20; --text:#f1f3f5;
+      --text-secondary:#aeb4bd; --text-muted:#7b8291; --primary:#57c25c;
+      --primary-dark:#7cd881; --primary-light:#17301b; --border:#262b33;
+      --card-bg:#1a1e25; --footer-bg:#0a0d11; --footer-text:#9aa0aa;
+      --footer-border:#1d222a; --logo-dark:#7cd881; --logo-light:#bfe8c0;
+      --shadow: 0 20px 40px -18px rgba(0,0,0,0.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1115; --bg-alt:#161a20; --bg-hero:#161a20; --text:#f1f3f5;
+    --text-secondary:#aeb4bd; --text-muted:#7b8291; --primary:#57c25c;
+    --primary-dark:#7cd881; --primary-light:#17301b; --border:#262b33;
+    --card-bg:#1a1e25; --footer-bg:#0a0d11; --footer-text:#9aa0aa;
+    --footer-border:#1d222a; --logo-dark:#7cd881; --logo-light:#bfe8c0;
+    --shadow: 0 20px 40px -18px rgba(0,0,0,0.55);
+  }
+  html{scroll-behavior:smooth;}
+  body{ background:var(--bg); color:var(--text); font-family:'Poppins',ui-sans-serif,system-ui,sans-serif; overflow-x:hidden; }
+  ::selection{ background:var(--primary); color:#fff; }
+
+  .btn-primary{
+    background:var(--primary); color:#fff; transition:all .25s cubic-bezier(.16,1,.3,1);
+    box-shadow:0 10px 24px -10px rgba(76,175,80,.55);
+  }
+  .btn-primary:hover{ background:var(--primary-dark); transform:translateY(-3px); box-shadow:0 16px 30px -10px rgba(76,175,80,.65); }
+  .btn-primary:active{ transform:translateY(-1px); }
+
+  .link-underline{ position:relative; }
+  .link-underline::after{
+    content:''; position:absolute; left:0; bottom:-3px; width:0; height:2px; background:var(--primary);
+    transition:width .3s ease;
+  }
+  .link-underline:hover::after{ width:100%; }
+
+  .card-hover{ transition:transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s ease, border-color .35s ease; }
+  .card-hover:hover{ transform:translateY(-8px); box-shadow:var(--shadow); border-color:transparent; }
+
+  .icon-badge{ transition:transform .35s cubic-bezier(.16,1,.3,1), background .35s ease; }
+  .card-hover:hover .icon-badge{ transform:scale(1.12) rotate(-6deg); background:var(--primary); }
+  .card-hover:hover .icon-badge svg{ stroke:#fff !important; }
+
+  .client-logo{ filter:grayscale(1); opacity:.55; transition:all .3s ease; }
+  .client-logo:hover{ filter:grayscale(0); opacity:1; transform:translateY(-2px); }
+
+  .anim-init{ opacity:0; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+    .anim-init{ opacity:1 !important; transform:none !important; }
+  }
+
+  .fade-slot{ animation-fill-mode:forwards; }
+
+  #mobile-menu{ transition:max-height .35s ease, opacity .3s ease; }
+
+  .newsletter-input:focus{ outline:2px solid var(--primary); outline-offset:2px; }
+  a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+
+  .wide-scroll{ overflow-x:auto; }
+  .wide-scroll::-webkit-scrollbar{ height:6px; }
+  .wide-scroll::-webkit-scrollbar-thumb{ background:var(--border); border-radius:99px; }
+</style>
+</head>
+<body>
+
+<!-- ============ NAVBAR ============ -->
+<header id="home" class="sticky top-0 z-50 bg-[var(--bg)]/90 backdrop-blur border-b border-[var(--border)]">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
+    <a href="#home" class="flex items-center gap-2 shrink-0">
+      <svg width="34" height="30" viewBox="0 0 34 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17 0L34 10L17 20L0 10L17 0Z" fill="var(--logo-dark)"/>
+        <path d="M17 10L34 20L17 30L0 20L17 10Z" fill="var(--logo-light)"/>
+      </svg>
+      <span class="text-xl font-bold tracking-tight text-[var(--text)]">Nexcent</span>
+    </a>
+
+    <nav class="hidden lg:flex items-center gap-9 text-[15px] font-medium text-[var(--text)]">
+      <a href="#home" class="link-underline">Home</a>
+      <a href="#service" class="link-underline">Service</a>
+      <a href="#feature" class="link-underline">Feature</a>
+      <a href="#product" class="link-underline">Product</a>
+      <a href="#testimonial" class="link-underline">Testimonial</a>
+      <a href="#faq" class="link-underline">FAQ</a>
+    </nav>
+
+    <div class="hidden lg:flex items-center gap-6">
+      <a href="#" class="text-[15px] font-medium text-[var(--primary)] link-underline">Login</a>
+      <a href="#" class="btn-primary rounded-lg px-6 py-2.5 text-[15px] font-semibold">Sign up</a>
+    </div>
+
+    <button id="menu-btn" aria-label="Toggle menu" aria-expanded="false" class="lg:hidden p-2 -mr-2 text-[var(--text)]">
+      <svg id="icon-burger" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <svg id="icon-close" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="hidden"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div id="mobile-menu" class="lg:hidden max-h-0 opacity-0 overflow-hidden border-t border-[var(--border)]">
+    <div class="px-5 py-4 flex flex-col gap-4 text-[15px] font-medium text-[var(--text)]">
+      <a href="#home">Home</a>
+      <a href="#service">Service</a>
+      <a href="#feature">Feature</a>
+      <a href="#product">Product</a>
+      <a href="#testimonial">Testimonial</a>
+      <a href="#faq">FAQ</a>
+      <div class="flex items-center gap-5 pt-2 border-t border-[var(--border)]">
+        <a href="#" class="text-[var(--primary)] font-medium">Login</a>
+        <a href="#" class="btn-primary rounded-lg px-5 py-2 text-sm font-semibold">Sign up</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="bg-[var(--bg-hero)]">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+    <div class="anim-init animate-fadeUp" style="animation-delay:.05s">
+      <h1 class="text-4xl sm:text-5xl font-bold leading-tight text-[var(--text)]">
+        Lessons and insights<br><span class="text-[var(--primary)]">from 8 years</span>
+      </h1>
+      <p class="mt-5 text-[var(--text-secondary)] text-base sm:text-lg max-w-md">
+        Where to grow your business as a photographer: site or social media?
+      </p>
+      <a href="#service" class="btn-primary inline-block mt-8 rounded-lg px-8 py-3.5 font-semibold">Register</a>
+    </div>
+
+    <div class="anim-init animate-pop" style="animation-delay:.2s">
+      <svg viewBox="0 0 560 420" class="w-full h-auto max-w-lg mx-auto" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="280" cy="390" rx="220" ry="18" fill="#000" opacity="0.06"/>
+        <rect x="150" y="330" width="90" height="14" rx="5" fill="var(--text-muted)"/>
+        <rect x="120" y="344" width="150" height="10" rx="5" fill="var(--text-muted)" opacity=".6"/>
+        <rect x="40" y="40" width="330" height="250" rx="14" fill="var(--card-bg)" stroke="var(--border)" stroke-width="2"/>
+        <rect x="40" y="40" width="330" height="34" rx="14" fill="var(--primary)"/>
+        <circle cx="60" cy="57" r="4.5" fill="#fff" opacity=".9"/>
+        <circle cx="76" cy="57" r="4.5" fill="#fff" opacity=".7"/>
+        <circle cx="92" cy="57" r="4.5" fill="#fff" opacity=".5"/>
+        <rect x="58" y="96" width="130" height="14" rx="4" fill="var(--bg-alt)"/>
+        <rect x="58" y="118" width="90" height="10" rx="4" fill="var(--border)"/>
+        <rect x="58" y="140" width="14" height="14" rx="4" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1.5"/>
+        <rect x="80" y="140" width="14" height="14" rx="4" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1.5"/>
+        <line x1="72" y1="147" x2="80" y2="147" stroke="var(--primary)" stroke-width="1.5"/>
+        <rect x="58" y="166" width="120" height="8" rx="4" fill="var(--border)"/>
+        <rect x="58" y="182" width="70" height="8" rx="4" fill="var(--border)"/>
+        <rect x="58" y="206" width="130" height="46" rx="8" fill="var(--bg-alt)"/>
+        <path d="M70 240 L90 220 L108 234 L128 210" stroke="var(--primary)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="206" y="96" width="146" height="156" rx="10" fill="#1e2530"/>
+        <rect x="220" y="112" width="60" height="9" rx="4" fill="var(--primary)"/>
+        <rect x="220" y="130" width="100" height="7" rx="3" fill="#475467"/>
+        <rect x="220" y="145" width="80" height="7" rx="3" fill="#475467"/>
+        <rect x="220" y="160" width="90" height="7" rx="3" fill="#475467"/>
+        <rect x="230" y="178" width="80" height="7" rx="3" fill="#3a4556"/>
+        <rect x="230" y="193" width="70" height="7" rx="3" fill="#3a4556"/>
+        <rect x="220" y="212" width="95" height="7" rx="3" fill="#475467"/>
+        <rect x="220" y="227" width="60" height="7" rx="3" fill="var(--primary)" opacity=".8"/>
+        <rect x="185" y="290" width="70" height="16" rx="4" fill="var(--text-muted)"/>
+        <rect x="150" y="306" width="140" height="12" rx="6" fill="var(--text-muted)"/>
+        <g transform="translate(350,120)">
+          <ellipse cx="55" cy="245" rx="60" ry="12" fill="#000" opacity=".05"/>
+          <circle cx="55" cy="20" r="19" fill="#33414f"/>
+          <path d="M55 8c-6 0-9 5-9 10s3 9 9 9 9-4 9-9-3-10-9-10Z" fill="#33414f"/>
+          <rect x="26" y="40" width="58" height="78" rx="22" fill="var(--primary)"/>
+          <rect x="18" y="112" width="26" height="76" rx="10" fill="#2b3742"/>
+          <rect x="66" y="112" width="26" height="76" rx="10" fill="#33414f"/>
+          <g transform="translate(-32,74) rotate(-10)">
+            <rect x="0" y="0" width="72" height="46" rx="5" fill="#e8eaed" stroke="var(--border)"/>
+            <rect x="6" y="6" width="60" height="30" rx="2" fill="#2b3742"/>
+            <rect x="-4" y="46" width="92" height="6" rx="3" fill="#c9ccd1"/>
+          </g>
+          <circle cx="98" cy="32" r="15" fill="var(--text)" opacity=".9"/>
+          <path d="M91 32l5 5 9-11" stroke="var(--bg)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLIENTS ============ -->
+<section id="service" class="py-20 bg-[var(--bg)]">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 text-center">
+    <h2 class="text-2xl sm:text-3xl font-bold">Our Clients</h2>
+    <p class="mt-2 text-[var(--text-secondary)]">We have been working with some Fortune 500+ clients</p>
+
+    <div class="mt-12 wide-scroll">
+      <div class="flex items-center justify-between gap-10 min-w-[720px] sm:min-w-0">
+        <svg class="client-logo w-10 h-10" viewBox="0 0 40 40"><circle cx="14" cy="16" r="9" fill="#8a94a3"/><circle cx="26" cy="16" r="9" fill="#8a94a3" opacity=".55"/><circle cx="20" cy="27" r="9" fill="#8a94a3" opacity=".8"/></svg>
+        <svg class="client-logo w-10 h-10" viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="17" ry="8" fill="none" stroke="#8a94a3" stroke-width="3"/><circle cx="20" cy="20" r="5" fill="#8a94a3"/></svg>
+        <svg class="client-logo w-10 h-10" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" rx="10" fill="#8a94a3"/><path d="M14 26V14h6a5 5 0 010 10h-6" stroke="#fff" stroke-width="2.4" fill="none"/></svg>
+        <div class="client-logo select-none text-lg font-bold tracking-tight" style="color:#8a94a3">LOGO<span style="color:#8a94a3;opacity:.6">ipsum</span></div>
+        <svg class="client-logo w-10 h-10" viewBox="0 0 40 40"><path d="M20 4c9 4 14 9 14 16s-5 12-14 16C11 32 6 27 6 20S11 8 20 4Z" fill="#8a94a3"/></svg>
+        <svg class="client-logo w-10 h-10" viewBox="0 0 40 40"><circle cx="14" cy="20" r="9" fill="none" stroke="#8a94a3" stroke-width="3"/><circle cx="26" cy="20" r="9" fill="none" stroke="#8a94a3" stroke-width="3"/></svg>
+        <svg class="client-logo w-10 h-10" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" rx="10" fill="#8a94a3"/><path d="M14 26V14h6a5 5 0 010 10h-6" stroke="#fff" stroke-width="2.4" fill="none"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MANAGE COMMUNITY / FEATURES ============ -->
+<section id="feature" class="py-6 pb-24 bg-[var(--bg)]">
+  <div class="max-w-4xl mx-auto px-5 sm:px-8 text-center">
+    <h2 class="text-3xl sm:text-4xl font-bold leading-tight">Manage your entire community<br>in a single system</h2>
+    <p class="mt-3 text-[var(--primary)] font-medium">Who is Nextcent suitable for?</p>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-7">
+    <div class="card-hover border border-[var(--border)] rounded-2xl p-8 text-center bg-[var(--card-bg)]">
+      <div class="icon-badge w-14 h-14 mx-auto rounded-xl bg-[var(--primary-light)] flex items-center justify-center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.6"/><path d="M15 19c.2-2 1.7-3.6 3.5-3.9"/></svg>
+      </div>
+      <h3 class="mt-5 font-semibold text-lg">Membership Organisations</h3>
+      <p class="mt-2 text-sm text-[var(--text-secondary)] leading-relaxed">Our membership management software provides full automation of membership renewals and payments</p>
+    </div>
+
+    <div class="card-hover border border-[var(--border)] rounded-2xl p-8 text-center bg-[var(--card-bg)]">
+      <div class="icon-badge w-14 h-14 mx-auto rounded-xl bg-[var(--primary-light)] flex items-center justify-center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l6-4 6 4v12"/><path d="M14 21v-7h6v7"/><path d="M9 21v-5h2v5"/></svg>
+      </div>
+      <h3 class="mt-5 font-semibold text-lg">National Associations</h3>
+      <p class="mt-2 text-sm text-[var(--text-secondary)] leading-relaxed">Our membership management software provides full automation of membership renewals and payments</p>
+    </div>
+
+    <div class="card-hover border border-[var(--border)] rounded-2xl p-8 text-center bg-[var(--card-bg)] sm:col-span-2 lg:col-span-1">
+      <div class="icon-badge w-14 h-14 mx-auto rounded-xl bg-[var(--primary-light)] flex items-center justify-center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="3.2"/><circle cx="18" cy="17" r="3.2"/><path d="M9 17l4-9h3M9 17h6M11 8h3l2 3"/></svg>
+      </div>
+      <h3 class="mt-5 font-semibold text-lg">Clubs And Groups</h3>
+      <p class="mt-2 text-sm text-[var(--text-secondary)] leading-relaxed">Our membership management software provides full automation of membership renewals and payments</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRODUCT SHOWCASE 1 + STATS ============ -->
+<section id="product" class="py-8 bg-[var(--bg)]">
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 grid md:grid-cols-2 gap-12 items-center">
+    <svg viewBox="0 0 420 360" class="w-full max-w-sm mx-auto h-auto">
+      <ellipse cx="210" cy="340" rx="150" ry="14" fill="#000" opacity=".05"/>
+      <rect x="150" y="30" width="130" height="230" rx="16" fill="var(--card-bg)" stroke="var(--border)" stroke-width="2"/>
+      <circle cx="215" cy="60" r="16" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+      <path d="M208 60c0-5 3-8 7-8s7 3 7 8-3 8-7 8" stroke="var(--primary)" stroke-width="1.8" fill="none"/>
+      <rect x="168" y="92" width="94" height="12" rx="4" fill="var(--bg-alt)"/>
+      <rect x="168" y="112" width="94" height="12" rx="4" fill="var(--bg-alt)"/>
+      <rect x="168" y="132" width="94" height="12" rx="4" fill="var(--bg-alt)"/>
+      <rect x="178" y="200" width="74" height="26" rx="7" fill="var(--primary)"/>
+      <g transform="translate(70,110)">
+        <circle cx="30" cy="18" r="17" fill="#33414f"/>
+        <rect x="6" y="36" width="48" height="68" rx="20" fill="#4c5a6a"/>
+        <rect x="0" y="100" width="22" height="66" rx="9" fill="#2b3742"/>
+        <rect x="38" y="100" width="22" height="66" rx="9" fill="#33414f"/>
+      </g>
+      <g transform="translate(230,110)">
+        <circle cx="30" cy="18" r="17" fill="var(--primary-dark)"/>
+        <rect x="6" y="36" width="48" height="68" rx="20" fill="var(--primary)"/>
+        <rect x="0" y="100" width="22" height="66" rx="9" fill="#2f3d33"/>
+        <rect x="38" y="100" width="22" height="66" rx="9" fill="#3a4a3d"/>
+      </g>
+    </svg>
+
+    <div>
+      <h2 class="text-3xl sm:text-4xl font-bold leading-tight">The unseen of spending three years at Pixelgrade</h2>
+      <p class="mt-5 text-[var(--text-secondary)] leading-relaxed">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet justo ipsum. Sed accumsan quam vitae est varius fringilla. Pellentesque placerat vestibulum lorem sed porta. Nullam mattis tristique iaculis. Nullam pulvinar sit amet risus pretium auctor. Etiam quis massa pulvinar, aliquam quam vitae, tempus sem. Donec elementum pulvinar odio.
+      </p>
+      <a href="#product" class="btn-primary inline-block mt-7 rounded-lg px-7 py-3 font-semibold">Learn More</a>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 mt-16">
+    <div class="bg-[var(--bg-alt)] rounded-2xl grid grid-cols-2 lg:grid-cols-4 gap-8 py-10 px-6 sm:px-10">
+      <div class="flex items-center gap-3 card-hover rounded-xl p-2">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.6"/><path d="M15 19c.2-2 1.7-3.6 3.5-3.9"/></svg>
+        <div><div class="font-bold text-lg leading-none">2,245,341</div><div class="text-xs text-[var(--text-secondary)] mt-1">Members</div></div>
+      </div>
+      <div class="flex items-center gap-3 card-hover rounded-xl p-2">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M9 17l4-9h3M9 17h6"/></svg>
+        <div><div class="font-bold text-lg leading-none">2,245,341</div><div class="text-xs text-[var(--text-secondary)] mt-1">Members</div></div>
+      </div>
+      <div class="flex items-center gap-3 card-hover rounded-xl p-2">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.6"/><path d="M15 19c.2-2 1.7-3.6 3.5-3.9"/></svg>
+        <div><div class="font-bold text-lg leading-none">2,245,341</div><div class="text-xs text-[var(--text-secondary)] mt-1">Members</div></div>
+      </div>
+      <div class="flex items-center gap-3 card-hover rounded-xl p-2">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M9 17l4-9h3M9 17h6"/></svg>
+        <div><div class="font-bold text-lg leading-none">2,245,341</div><div class="text-xs text-[var(--text-secondary)] mt-1">Members</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRODUCT SHOWCASE 2 + TESTIMONIAL ============ -->
+<section id="testimonial" class="py-24 bg-[var(--bg)]">
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 grid md:grid-cols-2 gap-12 items-center">
+    <svg viewBox="0 0 380 400" class="w-full max-w-sm mx-auto h-auto order-2 md:order-1">
+      <ellipse cx="190" cy="380" rx="120" ry="14" fill="#000" opacity=".05"/>
+      <rect x="110" y="40" width="160" height="300" rx="26" fill="var(--card-bg)" stroke="var(--border)" stroke-width="3"/>
+      <rect x="126" y="66" width="128" height="220" rx="6" fill="var(--bg-alt)"/>
+      <circle cx="190" cy="96" r="14" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="2"/>
+      <rect x="150" y="120" width="80" height="9" rx="4" fill="var(--border)"/>
+      <rect x="150" y="136" width="80" height="9" rx="4" fill="var(--border)"/>
+      <rect x="150" y="152" width="80" height="9" rx="4" fill="var(--border)"/>
+      <rect x="150" y="176" width="80" height="9" rx="4" fill="var(--border)"/>
+      <rect x="150" y="192" width="80" height="9" rx="4" fill="var(--border)"/>
+      <rect x="150" y="230" width="80" height="26" rx="7" fill="var(--primary)"/>
+      <circle cx="190" cy="316" r="10" fill="var(--border)"/>
+      <g transform="translate(30,150)">
+        <circle cx="30" cy="16" r="16" fill="#33414f"/>
+        <rect x="6" y="34" width="48" height="70" rx="20" fill="var(--primary)"/>
+        <rect x="0" y="100" width="22" height="68" rx="9" fill="#2b3742"/>
+        <rect x="38" y="100" width="22" height="68" rx="9" fill="#33414f"/>
+      </g>
+      <g transform="translate(15,60)">
+        <circle cx="18" cy="18" r="18" fill="var(--primary)"/>
+        <path d="M11 18l5 5 9-11" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <path d="M15 78 L30 78 L22 66 Z" fill="var(--primary)"/>
+    </svg>
+
+    <div class="order-1 md:order-2">
+      <h2 class="text-3xl sm:text-4xl font-bold leading-tight">The unseen of spending three years at Pixelgrade</h2>
+      <p class="mt-5 text-[var(--text-secondary)] leading-relaxed">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet justo ipsum. Sed accumsan quam vitae est varius fringilla. Pellentesque placerat vestibulum lorem sed porta. Nullam mattis tristique iaculis. Nullam pulvinar sit amet risus pretium auctor. Etiam quis massa pulvinar, aliquam quam vitae, tempus sem. Donec elementum pulvinar odio.
+      </p>
+      <a href="#testimonial" class="btn-primary inline-block mt-7 rounded-lg px-7 py-3 font-semibold">Learn More</a>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-5 sm:px-8 mt-16">
+    <div class="bg-[var(--bg-alt)] rounded-2xl p-8 sm:p-12 text-center">
+      <p class="text-[var(--text-secondary)] leading-relaxed">
+        Maecenas dignissim justo eget nulla rutrum molestie. Maecenas lobortis sem dui, vel rutrum risus tincidunt ullamcorper. Proin eu enim metus. Vivamus sed libero ornare, tristique quam in, gravida enim. Nullam ut molestie arcu, at hendrerit elit. Morbi laoreet elit at ligula molestie, nec massa mi blandit. Suspendisse cursus tellus sed augue ultrices, quis tristique nulla sodales.
+      </p>
+      <p class="mt-5 font-semibold text-[var(--primary)]">Tim Smith</p>
+
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-8 wide-scroll">
+        <svg class="w-9 h-9" viewBox="0 0 40 40"><circle cx="14" cy="16" r="9" fill="#7c3aed"/><circle cx="26" cy="16" r="9" fill="#a78bfa"/><circle cx="20" cy="27" r="9" fill="#c4b5fd"/></svg>
+        <svg class="w-9 h-9" viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="17" ry="8" fill="none" stroke="#1f2937" stroke-width="3"/><circle cx="20" cy="20" r="5" fill="#1f2937"/></svg>
+        <svg class="w-9 h-9" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" rx="10" fill="#111827"/><path d="M14 26V14h6a5 5 0 010 10h-6" stroke="#fff" stroke-width="2.4" fill="none"/></svg>
+        <div class="select-none text-lg font-bold tracking-tight text-[var(--text)]">LOGO<span class="text-[var(--primary)]">ipsum</span></div>
+        <svg class="w-9 h-9" viewBox="0 0 40 40"><path d="M20 4c9 4 14 9 14 16s-5 12-14 16C11 32 6 27 6 20S11 8 20 4Z" fill="#111827"/></svg>
+        <svg class="w-9 h-9" viewBox="0 0 40 40"><circle cx="14" cy="20" r="9" fill="none" stroke="#111827" stroke-width="3"/><circle cx="26" cy="20" r="9" fill="none" stroke="#111827" stroke-width="3"/></svg>
+      </div>
+      <a href="#faq" class="link-underline inline-flex items-center gap-1.5 mt-8 text-[var(--primary)] font-semibold">
+        Meet all customers
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BLOG / FAQ ============ -->
+<section id="faq" class="py-8 border-t border-[var(--border)]">
+  <div class="max-w-3xl mx-auto px-5 sm:px-8 text-center pt-16">
+    <h2 class="text-3xl font-bold">Caring is the new marketing</h2>
+    <p class="mt-3 text-[var(--text-secondary)]">The Nexcent blog is the best place to read about the latest membership insights, trends and more. See who's joining the community, read about how our community are increasing their membership income and lot's more.</p>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="card-hover bg-[var(--bg-alt)] rounded-2xl p-7">
+      <h3 class="font-semibold text-lg leading-snug">Creating Streamlined Safeguarding Processes with OneRen</h3>
+      <a href="#" class="link-underline inline-flex items-center gap-1.5 mt-5 text-[var(--primary)] font-semibold text-sm">
+        Readmore
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+    <div class="card-hover bg-[var(--bg-alt)] rounded-2xl p-7">
+      <h3 class="font-semibold text-lg leading-snug">What are your safeguarding responsibilities and how can you manage them?</h3>
+      <a href="#" class="link-underline inline-flex items-center gap-1.5 mt-5 text-[var(--primary)] font-semibold text-sm">
+        Readmore
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+    <div class="card-hover bg-[var(--bg-alt)] rounded-2xl p-7 sm:col-span-2 lg:col-span-1">
+      <h3 class="font-semibold text-lg leading-snug">Revamping the Membership Model with Triathlon Australia</h3>
+      <a href="#" class="link-underline inline-flex items-center gap-1.5 mt-5 text-[var(--primary)] font-semibold text-sm">
+        Readmore
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-5 sm:px-8 mt-16">
+    <div class="bg-[var(--bg-alt)] rounded-2xl py-16 px-6 text-center">
+      <h3 class="text-2xl sm:text-3xl font-bold">Pellentesque suscipit fringilla libero eu.</h3>
+      <a href="#" class="btn-primary inline-block mt-7 rounded-lg px-8 py-3.5 font-semibold">Get a Demo</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-[var(--footer-bg)] text-[var(--footer-text)] mt-8">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 py-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-12">
+    <div>
+      <div class="flex items-center gap-2">
+        <svg width="30" height="26" viewBox="0 0 34 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 0L34 10L17 20L0 10L17 0Z" fill="var(--logo-light)"/>
+          <path d="M17 10L34 20L17 30L0 20L17 10Z" fill="var(--logo-dark)"/>
+        </svg>
+        <span class="text-lg font-bold text-white">Nexcent</span>
+      </div>
+      <p class="mt-4 text-sm leading-relaxed">Copyright © 2026 Nexcent ltd.<br>All rights reserved.</p>
+      <div class="flex items-center gap-3 mt-6">
+        <a href="#" aria-label="Google" class="w-9 h-9 rounded-full border border-[var(--footer-border)] bg-white flex items-center justify-center hover:border-[var(--primary)] transition-colors duration-300">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.9-2.26 5.36-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.94 23.94 0 0 0 0 24c0 3.87.92 7.53 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        </a>
+        <a href="#" aria-label="Instagram" class="w-9 h-9 rounded-full border border-[var(--footer-border)] flex items-center justify-center hover:bg-[var(--primary)] hover:border-[var(--primary)] transition-colors duration-300">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+        </a>
+        <a href="#" aria-label="Twitter" class="w-9 h-9 rounded-full border border-[var(--footer-border)] flex items-center justify-center hover:bg-[var(--primary)] hover:border-[var(--primary)] transition-colors duration-300">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 5.9c-.7.35-1.5.6-2.3.7.8-.5 1.5-1.3 1.8-2.3-.8.5-1.7.8-2.6 1a4.1 4.1 0 0 0-7 3.7A11.6 11.6 0 0 1 3.4 4.6a4.1 4.1 0 0 0 1.3 5.5c-.66-.02-1.28-.2-1.83-.5v.05a4.1 4.1 0 0 0 3.3 4 4.2 4.2 0 0 1-1.85.07 4.1 4.1 0 0 0 3.83 2.85A8.3 8.3 0 0 1 2 18.4a11.7 11.7 0 0 0 6.3 1.85c7.6 0 11.7-6.3 11.7-11.7v-.53c.8-.58 1.5-1.3 2-2.1Z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div>
+      <h4 class="text-white font-semibold mb-5">Company</h4>
+      <ul class="space-y-3 text-sm">
+        <li><a href="#" class="link-underline hover:text-white transition-colors">About us</a></li>
+        <li><a href="#" class="link-underline hover:text-white transition-colors">Blog</a></li>
+        <li><a href="#" class="link-underline hover:text-white transition-colors">Contact us</a></li>
+        <li><a href="#" class="link-underline hover:text-white transition-colors">Pricing</a></li>
+        <li><a href="#" class="link-underline hover:text-white transition-colors">Testimonials</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 class="text-white font-semibold mb-5">Support</h4>
+      <ul class="space-y-3 text-sm">
+        <li><a href="#" class="link-underline hover:text-white transition-colors">Help center</a></li>
+        <li><a href="#" class="link-underline hover:text-white transition-colors">Terms of service</a></li>
+        <li><a href="#" class="link-underline hover:text-white transition-colors">Legal</a></li>
+        <li><a href="#" class="link-underline hover:text-white transition-colors">Status</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 class="text-white font-semibold mb-5">Stay up to date</h4>
+      <form onsubmit="return false;" class="flex items-center gap-2">
+        <input type="email" required placeholder="Your email address" class="newsletter-input flex-1 min-w-0 bg-transparent border border-[var(--footer-border)] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[var(--footer-text)]">
+        <button type="submit" aria-label="Subscribe" class="btn-primary shrink-0 w-10 h-10 rounded-lg flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7Z"/></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const iconBurger = document.getElementById('icon-burger');
+  const iconClose = document.getElementById('icon-close');
+  let open = false;
+  menuBtn.addEventListener('click', () => {
+    open = !open;
+    menuBtn.setAttribute('aria-expanded', open);
+    if (open) {
+      mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
+      mobileMenu.style.opacity = '1';
+      iconBurger.classList.add('hidden');
+      iconClose.classList.remove('hidden');
+    } else {
+      mobileMenu.style.maxHeight = '0px';
+      mobileMenu.style.opacity = '0';
+      iconBurger.classList.remove('hidden');
+      iconClose.classList.add('hidden');
+    }
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    open = false;
+    mobileMenu.style.maxHeight = '0px';
+    mobileMenu.style.opacity = '0';
+    iconBurger.classList.remove('hidden');
+    iconClose.classList.add('hidden');
+  }));
+</script>
+</body>
+</html>
